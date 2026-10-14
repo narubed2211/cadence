@@ -1,0 +1,22 @@
+{
+  "name": "Cadence — กิจวัตรและการออกกำลังกาย",
+  "short_name": "Cadence",
+  "description": "ติดตามกิจวัตรประจำวันที่ตั้งเป้ารายสัปดาห์ได้ยืดหยุ่น พร้อมบันทึกการออกกำลังกายเพื่อเทียบ progressive overload",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e9ece9",
+  "theme_color": "#2e5e4e",
+  "lang": "th",
+  "categories": ["health", "lifestyle", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "บันทึกการออกกำลังกาย", "short_name": "ออกกำลังกาย", "url": "./index.html?tab=workout", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "ปฏิทิน", "short_name": "ปฏิทิน", "url": "./index.html?tab=calendar", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
