@@ -1,6 +1,6 @@
 /* Service Worker ของ Cadence: ทำให้เปิดแอปได้ออฟไลน์
    เปลี่ยนเลขเวอร์ชันของ CACHE ทุกครั้งที่แก้ไฟล์ เพื่อให้เครื่องผู้ใช้ดึงของใหม่ */
-const CACHE = 'cadence-v1';
+const CACHE = 'cadence-v2';
 const FONTS = 'cadence-fonts-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
