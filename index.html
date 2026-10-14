@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  
+
 /* =====================================================================
    Cadence — แอปติดตามกิจวัตรและออกกำลังกาย (PWA)
    ธีมทั้งหมดกำหนดด้วยตัวแปร CSS ด้านล่าง (เพิ่มธีมใหม่ = เพิ่มบล็อก [data-theme="..."])
@@ -1367,7 +1367,213 @@ function renderFood() {
   });
   root.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.ff && e.target.dataset.ff !== 'goal') { e.preventDefault(); saveFood(); } });
 })();
+/* =====================================================================
+   ส่วนขยาย AI: คำนวณน้ำหนักอาหาร (กรัม) และแคลอรี่ด้วย Gemini API
+   (รองรับทั้งการพิมพ์ข้อความและถ่ายรูปอาหาร ไม่กระทบโค้ดเดิม)
+   ===================================================================== */
+Object.assign(I18N.th, {
+  'prefs.ai': 'ผู้ช่วย AI คำนวณแคลอรี่',
+  'prefs.aiSub': 'ใส่ Gemini API Key เพื่อประเมินน้ำหนักอาหาร (กรัม) และแคลอรี่จากชื่อเมนูหรือรูปถ่าย (เก็บไว้ในเครื่องนี้เท่านั้น)',
+  'prefs.aiPh': 'วาง Gemini API Key (AIza...)',
+  'food.aiBtn': '✨ AI คำนวณ',
+  'food.aiPhoto': '📷 รูปอาหาร',
+  'food.aiNoKey': 'กรุณาใส่ Gemini API Key ในหน้าการตั้งค่า (มุมขวาบน) ก่อนใช้งาน AI',
+  'food.aiNeedName': 'พิมพ์ชื่ออาหารหรือรายละเอียดก่อนกดคำนวณ',
+  'food.aiFail': 'AI คำนวณไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตหรือ API Key',
+  'food.aiDone': 'AI ประเมินน้ำหนักและแคลอรี่ให้แล้ว'
+});
+Object.assign(I18N.en, {
+  'prefs.ai': 'AI Calorie Assistant',
+  'prefs.aiSub': 'Enter your Gemini API Key to estimate food weight (g) and calories from text or photos (stored on this device only).',
+  'prefs.aiPh': 'Paste Gemini API Key (AIza...)',
+  'food.aiBtn': '✨ AI Estimate',
+  'food.aiPhoto': '📷 Photo',
+  'food.aiNoKey': 'Please enter your Gemini API Key in Settings (top right) first',
+  'food.aiNeedName': 'Type a food name or description first',
+  'food.aiFail': 'AI estimation failed. Check your connection or API Key.',
+  'food.aiDone': 'Weight & calories estimated by AI'
+});
+
+(function setupAIFood() {
+  // 1. เพิ่มช่องตั้งค่า API Key ลงในลิ้นชักตั้งค่า (#drawer)
+  const db = $('#drawer .db');
+  if (db) {
+    const sec = document.createElement('section');
+    sec.innerHTML = `
+      <h3 data-i18n="prefs.ai">${esc(t('prefs.ai'))}</h3>
+      <p class="sub" data-i18n="prefs.aiSub">${esc(t('prefs.aiSub'))}</p>
+      <div class="field">
+        <input type="password" id="inp-aikey" autocomplete="off" value="${esc(PREFS.aiKey || '')}" placeholder="${esc(t('prefs.aiPh'))}">
+      </div>`;
+    const installSec = $('#sec-install', db);
+    db.insertBefore(sec, installSec || null);
+    $('#inp-aikey', sec).addEventListener('change', e => {
+      PREFS.aiKey = e.target.value.trim();
+      savePrefs();
+      toast(t('tt.saved'), 'ok');
+    });
+  }
+
+  // สร้าง input สำหรับเลือกรูป/ถ่ายรูปอาหาร
+  const fileInp = document.createElement('input');
+  fileInp.type = 'file';
+  fileInp.accept = 'image/*';
+  fileInp.hidden = true;
+  document.body.appendChild(fileInp);
+
+  let aiNote = '';
+  let aiBusy = false;
+
+  // 2. ห่อฟังก์ชัน renderFood เดิมเพื่อเติมปุ่ม AI เข้าไปในฟอร์มอาหารอัตโนมัติ
+  const origRenderFood = VIEWS.food;
+  VIEWS.food = renderFood = function() {
+    origRenderFood();
+    const root = $('#view-food');
+    const nameInput = $('[data-ff="name"]', root);
+    if (!nameInput) return;
+    const fieldDiv = nameInput.closest('.field');
+    if (fieldDiv && !$('#ai-food-bar', fieldDiv)) {
+      const bar = document.createElement('div');
+      bar.id = 'ai-food-bar';
+      bar.style.cssText = 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center';
+      bar.innerHTML = `
+        <button type="button" class="btn ghost${aiBusy ? ' busy' : ''}" style="padding:7px 14px;font-size:13px" data-fa="ai-calc" ${aiBusy ? 'disabled' : ''}>${esc(t('food.aiBtn'))}</button>
+        <button type="button" class="btn ghost${aiBusy ? ' busy' : ''}" style="padding:7px 14px;font-size:13px" data-fa="ai-photo" ${aiBusy ? 'disabled' : ''}>${esc(t('food.aiPhoto'))}</button>
+        <span id="ai-food-note" class="dimtxt tiny" style="flex:1;min-width:160px">${esc(aiNote)}</span>`;
+      fieldDiv.appendChild(bar);
+    }
+  };
+
+  // ฟังก์ชันย่อรูปภาพด้วย Canvas เพื่อส่งให้ AI อย่างรวดเร็ว
+  function resizeImg(file, maxDim = 800) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          const dataUrl = cv.toDataURL('image/jpeg', 0.8);
+          resolve({ mimeType: 'image/jpeg', data: dataUrl.split(',')[1] });
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ฟังก์ชันเรียกใช้งาน Gemini API (Structured JSON Output)
+  async function runFoodAI(promptText, imagePart) {
+    const key = (PREFS.aiKey || '').trim();
+    if (!key) {
+      openDrawer();
+      setTimeout(() => { const el = $('#inp-aikey'); if (el) el.focus(); }, 350);
+      return toast(t('food.aiNoKey'), 'bad');
+    }
+    if (!imagePart && !promptText) {
+      const inp = $('#view-food [data-ff="name"]');
+      if (inp) inp.focus();
+      return toast(t('food.aiNeedName'), 'bad');
+    }
+
+    aiBusy = true;
+    renderFood();
+
+    try {
+      const langPrompt = LANG === 'th'
+        ? 'ตอบเป็นภาษาไทย เช่น "ข้าวมันไก่ต้ม (250g)" และอธิบายส่วนประกอบสั้นๆ ใน breakdown'
+        : 'Respond in English e.g. "Steamed chicken rice (250g)" and briefly explain in breakdown';
+
+      const parts = [];
+      if (imagePart) parts.push({ inlineData: imagePart });
+      parts.push({
+        text: `คุณคือนักโภชนาการ ประเมินน้ำหนักอาหาร (กรัม) และพลังงาน (kcal) จากข้อมูลนี้: "${promptText || 'อาหารในรูปภาพ'}"
+หากไม่ได้ระบุปริมาณ ให้ประเมินจากขนาด 1 หน่วยบริโภคมาตรฐาน ${langPrompt}`
+      });
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                displayName: { type: 'STRING', description: 'ชื่ออาหารพร้อมน้ำหนักรวมเป็นกรัมในวงเล็บ เช่น ข้าวมันไก่ (280g)' },
+                grams: { type: 'INTEGER', description: 'น้ำหนักอาหารโดยประมาณ (กรัม)' },
+                kcal: { type: 'INTEGER', description: 'พลังงานรวมทั้งหมด (kcal)' },
+                breakdown: { type: 'STRING', description: 'สรุปการคำนวณสั้นๆ 1 บรรทัด เช่น ข้าว 150g (240 kcal) + ไก่ต้ม 100g (190 kcal)' }
+              },
+              required: ['displayName', 'grams', 'kcal', 'breakdown']
+            }
+          }
+        })
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!raw) throw new Error('Empty response');
+      const parsed = JSON.parse(raw);
+
+      if (!UI.foodForm) UI.foodForm = { id: null, meal: mealNow(), name: '', kcal: '' };
+      UI.foodForm.name = String(parsed.displayName || promptText).slice(0, 80);
+      UI.foodForm.kcal = String(Math.max(0, Math.min(20000, Math.round(Number(parsed.kcal) || 0))));
+      aiNote = parsed.breakdown ? `💡 ${parsed.breakdown}` : '';
+
+      toast(t('food.aiDone'), 'ok');
+    } catch (err) {
+      console.error(err);
+      toast(t('food.aiFail'), 'bad');
+    } finally {
+      aiBusy = false;
+      renderFood();
+    }
+  }
+
+  // ดักจับการกดปุ่ม AI ในหน้าอาหาร
+  const foodRoot = $('#view-food');
+  if (foodRoot) {
+    foodRoot.addEventListener('click', e => {
+      const btn = e.target.closest('[data-fa]');
+      if (!btn || aiBusy) return;
+      const act = btn.dataset.fa;
+      if (act === 'ai-calc') {
+        const nameVal = (UI.foodForm?.name || $('[data-ff="name"]', foodRoot)?.value || '').trim();
+        runFoodAI(nameVal, null);
+      } else if (act === 'ai-photo') {
+        fileInp.click();
+      } else if (act === 'fsave' || act === 'fcancel' || act === 'fday') {
+        aiNote = '';
+      }
+    });
+  }
+
+  fileInp.addEventListener('change', async e => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const imgPart = await resizeImg(file);
+      const hint = (UI.foodForm?.name || '').trim();
+      await runFoodAI(hint, imgPart);
+    } catch (err) {
+      toast(t('food.aiFail'), 'bad');
+    }
+  });
+})();
 init();
 </script>
 </body>
 </html>
+
