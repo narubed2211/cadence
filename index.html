@@ -452,8 +452,8 @@ nav.tabs button[aria-current="page"]{background:var(--raise);color:var(--accent)
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 /* ===== ฟีเจอร์เพิ่มเติม: กันซูมตอนแตะสองที + แท็บอาหาร/แคลอรี่ ===== */
-html, body { touch-action: pan-x pan-y; }            /* ปิดซูมด้วยการบีบนิ้วและแตะสองที (ยังเลื่อนหน้าได้) */
-input, select, textarea { font-size: 16px !important; } /* กัน iPhone ซูมเองตอนแตะช่องพิมพ์ */            /* แตะสองทีไม่ซูม (ยังบีบนิ้วซูมได้ตามปกติ) */
+html, body { touch-action: pan-x pan-y; }  /* ปิดซูมด้วยการบีบนิ้วและแตะสองที ยังเลื่อนหน้าได้ */
+input, select, textarea { font-size: 16px !important; }  /* กัน iPhone ซูมเองตอนแตะช่องพิมพ์ */
 nav.tabs { grid-template-columns: repeat(5, 1fr); }   /* แถบเมนูมือถือ 5 ปุ่ม */
 nav.tabs button { font-size: 10.5px; white-space: nowrap; padding: 8px 2px 7px; }
 @media (min-width: 860px) { nav.tabs button { font-size: 14px; } }
@@ -1381,7 +1381,6 @@ Object.assign(I18N.th, {
   'food.aiNoKey': 'กรุณาใส่ Gemini API Key ในหน้าการตั้งค่า (มุมขวาบน) ก่อนใช้งาน AI',
   'food.aiNeedName': 'พิมพ์ชื่ออาหารหรือรายละเอียดก่อนกดคำนวณ',
   'food.aiFail': 'AI คำนวณไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตหรือ API Key',
-  'food.aiQuota': 'โควต้า AI ฟรีหมดชั่วคราว ถ้าเป็นการใช้เกินต่อนาทีให้รอสักครู่ ถ้าหมดทั้งวันจะรีเซ็ตประมาณ 14:00 น. (เวลาไทย)',
   'food.aiDone': 'AI ประเมินน้ำหนักและแคลอรี่ให้แล้ว'
 });
 Object.assign(I18N.en, {
@@ -1393,7 +1392,6 @@ Object.assign(I18N.en, {
   'food.aiNoKey': 'Please enter your Gemini API Key in Settings (top right) first',
   'food.aiNeedName': 'Type a food name or description first',
   'food.aiFail': 'AI estimation failed. Check your connection or API Key.',
-  'food.aiQuota': 'Free AI quota reached. Wait a minute if it is a per-minute limit; daily quota resets around 14:00 Thai time.',
   'food.aiDone': 'Weight & calories estimated by AI'
 });
 
@@ -1523,7 +1521,7 @@ Object.assign(I18N.en, {
         })
       });
 
-      if (!res.ok) { const eb = await res.text().catch(() => ''); const he = new Error('HTTP ' + res.status + ' ' + eb); he.status = res.status; throw he; }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!raw) throw new Error('Empty response');
@@ -1537,7 +1535,7 @@ Object.assign(I18N.en, {
       toast(t('food.aiDone'), 'ok');
     } catch (err) {
       console.error(err);
-      toast(t(err && err.status === 429 ? 'food.aiQuota' : 'food.aiFail'), 'bad');
+      toast(t('food.aiFail'), 'bad');
     } finally {
       aiBusy = false;
       renderFood();
@@ -1562,7 +1560,6 @@ Object.assign(I18N.en, {
     });
   }
 
-  
   fileInp.addEventListener('change', async e => {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -1577,16 +1574,9 @@ Object.assign(I18N.en, {
   });
 })();
 init();
-
-// ปิดการซูมบน iOS Safari (iOS ไม่สนใจ user-scalable=no จึงต้องดักเหตุการณ์เอง)
+// ปิดการซูมบน iOS Safari (iOS ไม่สนใจ user-scalable=no)
 ['gesturestart','gesturechange','gestureend'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
-document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
-let _lastTouchEnd = 0;
-document.addEventListener('touchend', e => {
-  const now = Date.now();
-  if (now - _lastTouchEnd <= 350) e.preventDefault();
-  _lastTouchEnd = now;
-}, { passive: false });
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 </script>
 </body>
 </html>
