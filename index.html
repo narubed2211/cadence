@@ -1381,6 +1381,7 @@ Object.assign(I18N.th, {
   'food.aiNoKey': 'กรุณาใส่ Gemini API Key ในหน้าการตั้งค่า (มุมขวาบน) ก่อนใช้งาน AI',
   'food.aiNeedName': 'พิมพ์ชื่ออาหารหรือรายละเอียดก่อนกดคำนวณ',
   'food.aiFail': 'AI คำนวณไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตหรือ API Key',
+  'food.aiQuota': 'โควต้า AI ฟรีหมดชั่วคราว ถ้าเป็นการใช้เกินต่อนาทีให้รอสักครู่ ถ้าหมดทั้งวันจะรีเซ็ตประมาณ 14:00 น. (เวลาไทย)',
   'food.aiDone': 'AI ประเมินน้ำหนักและแคลอรี่ให้แล้ว'
 });
 Object.assign(I18N.en, {
@@ -1392,6 +1393,7 @@ Object.assign(I18N.en, {
   'food.aiNoKey': 'Please enter your Gemini API Key in Settings (top right) first',
   'food.aiNeedName': 'Type a food name or description first',
   'food.aiFail': 'AI estimation failed. Check your connection or API Key.',
+  'food.aiQuota': 'Free AI quota reached. Wait a minute if it is a per-minute limit; daily quota resets around 14:00 Thai time.',
   'food.aiDone': 'Weight & calories estimated by AI'
 });
 
@@ -1521,7 +1523,7 @@ Object.assign(I18N.en, {
         })
       });
 
-      if (!res.ok) { const eb = await res.text().catch(() => ''); throw new Error('HTTP ' + res.status + ' ' + eb); }
+      if (!res.ok) { const eb = await res.text().catch(() => ''); const he = new Error('HTTP ' + res.status + ' ' + eb); he.status = res.status; throw he; }
       const data = await res.json();
       const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!raw) throw new Error('Empty response');
@@ -1535,7 +1537,7 @@ Object.assign(I18N.en, {
       toast(t('food.aiDone'), 'ok');
     } catch (err) {
       console.error(err);
-      toast(t('food.aiFail'), 'bad');
+      toast(t(err && err.status === 429 ? 'food.aiQuota' : 'food.aiFail'), 'bad');
     } finally {
       aiBusy = false;
       renderFood();
