@@ -263,7 +263,7 @@ nav.tabs button[aria-current="page"]{background:var(--raise);color:var(--accent)
 .greet{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .greet h1{font-family:var(--font-num);font-weight:400;font-size:clamp(34px,6vw,50px);line-height:1;letter-spacing:-.01em}
 .greet p{color:var(--dim);font-size:14px;margin-top:6px}
-.weekstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:18px 0 18px}
+.weekstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin:18px 0 18px}
 .dchip{display:grid;justify-items:center;gap:4px;padding:10px 0 9px;border-radius:var(--r-lg);border:1px solid transparent;color:var(--dim);transition:all .3s var(--ease);min-width:0}
 .dchip small{font-size:11.5px}
 .dchip .n{font-family:var(--font-num);font-size:24px;line-height:1;color:var(--text)}
@@ -318,7 +318,7 @@ nav.tabs button[aria-current="page"]{background:var(--raise);color:var(--accent)
    ===================================================================== */
 .cal-head{display:flex;align-items:center;gap:10px;padding:18px 20px 0}
 .cal-head h2{font-family:var(--font-num);font-weight:400;font-size:clamp(26px,5vw,34px);line-height:1;flex:1;letter-spacing:-.01em}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;padding:14px 18px 6px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;padding:14px 18px 6px}
 .cal-grid .wd{text-align:center;font-size:12px;color:var(--dim);padding:4px 0}
 .cd{position:relative;aspect-ratio:1;min-height:42px;border-radius:14px;display:grid;place-items:center;font-size:15px;font-weight:500;color:var(--text);transition:all .25s var(--ease);background:transparent;border:1px solid transparent}
 .cd:hover:not(:disabled){background:var(--surface-2)}
@@ -358,8 +358,11 @@ nav.tabs button[aria-current="page"]{background:var(--raise);color:var(--accent)
 @media (max-width:340px){.fgrid{grid-template-columns:1fr}}
 .field textarea{width:100%;padding:12px 15px;border-radius:var(--r-md);border:1px solid var(--line-strong);background:var(--surface-2);outline:none;resize:vertical;min-height:70px;transition:border-color .2s,box-shadow .2s,background .2s}
 .field textarea:focus,.field input[type=date]:focus{border-color:var(--accent);background:var(--raise);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}
-.field input[type=date]{min-width:0;width:100%;font-size:14px;padding:12px 15px;border-radius:var(--r-md);border:1px solid var(--line-strong);background:var(--surface-2);outline:none}
-.field .stepper{display:flex;width:100%}.field .stepper input{flex:1;width:auto;min-width:0}
+.field input[type=date]{display:flex;align-items:center;box-sizing:border-box;min-width:0;width:100%;max-width:100%;height:46px;-webkit-appearance:none;appearance:none;font-size:14px;line-height:44px;padding:0 12px;border-radius:var(--r-md);border:1px solid var(--line-strong);background:var(--surface-2);color:var(--text);outline:none;overflow:hidden;text-align:left}
+.field input[type=date]::-webkit-date-and-time-value{text-align:left;min-width:0;margin:0;line-height:44px;height:44px}
+.field input[type=date]::-webkit-datetime-edit{padding:0;max-width:100%;overflow:hidden;line-height:44px}
+.field input[type=date]::-webkit-calendar-picker-indicator{margin:0;padding:0 0 0 4px}
+.field .stepper{display:flex;width:100%}.field .stepper input{flex:1;width:auto;min-width:0}.field .stepper input[type=number]{border:0;background:transparent;box-shadow:none;border-radius:0;padding:0}
 .feels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .feel{display:grid;justify-items:center;gap:4px;padding:11px 4px 9px;border-radius:var(--r-lg);border:1px solid var(--line);background:var(--surface-2);font-size:12px;color:var(--dim);transition:all .25s var(--ease);line-height:1.25;text-align:center}
 .feel .e{font-size:24px}
@@ -453,7 +456,7 @@ nav.tabs button[aria-current="page"]{background:var(--raise);color:var(--accent)
 
 /* ===== ฟีเจอร์เพิ่มเติม: กันซูมตอนแตะสองที + แท็บอาหาร/แคลอรี่ ===== */
 html, body { touch-action: pan-x pan-y; }  /* ปิดซูมด้วยการบีบนิ้วและแตะสองที ยังเลื่อนหน้าได้ */
-input, select, textarea { font-size: 16px !important; }  /* กัน iPhone ซูมเองตอนแตะช่องพิมพ์ */
+input:not([type=date]), select, textarea { font-size: 16px !important; }  /* กัน iPhone ซูมเองตอนแตะช่องพิมพ์ */
 nav.tabs { grid-template-columns: repeat(5, 1fr); }   /* แถบเมนูมือถือ 5 ปุ่ม */
 nav.tabs button { font-size: 10.5px; white-space: nowrap; padding: 8px 2px 7px; }
 @media (min-width: 860px) { nav.tabs button { font-size: 14px; } }
@@ -579,7 +582,7 @@ th: {
   'cal.sDays':'วันที่สำเร็จ','cal.sTicks':'ติ๊กทั้งหมด','cal.sWeeks':'เป้าสัปดาห์ที่บรรลุ','cal.u.day':'วัน','cal.u.time':'ครั้ง','cal.u.goal':'เป้า',
   'day.done':'ทำแล้ว {a} จาก {b} กิจวัตร','day.noHabits':'ยังไม่มีกิจวัตรในวันนี้','day.workouts':'การออกกำลังกาย','day.noWorkout':'ไม่มีบันทึกออกกำลังกาย','day.addWorkout':'เพิ่มบันทึกออกกำลังกาย','day.future':'วันนี้ยังมาไม่ถึง','day.weekTotal':'สัปดาห์นี้ {c}/{t}',
   'wk.log':'บันทึก','wk.history':'ประวัติ','wk.progress':'ความก้าวหน้า',
-  'wf.title':'บันทึกการฝึก','wf.edit':'แก้ไขบันทึก','wf.ex':'ชื่อท่า','wf.exPh':'เช่น Bench Press, สควอท','wf.weight':'น้ำหนัก (กก.)','wf.weightPh':'ว่าง = น้ำหนักตัว','wf.reps':'จำนวนครั้ง','wf.sets':'จำนวนเซต','wf.feel':'ฟีลลิ่งความหนัก','wf.note':'โน้ตสำหรับครั้งหน้า','wf.notePh':'เช่น ฟอร์มดี ครั้งหน้าลองเพิ่มน้ำหนัก / ไหล่ซ้ายตึง','wf.date':'วันที่',
+  'wf.title':'บันทึกการฝึก','wf.edit':'แก้ไขบันทึก','wf.ex':'ชื่อท่า','wf.exPh':'เช่น Bench Press, สควอท','wf.weight':'น้ำหนัก (กก.)','wf.weightPh':'–','wf.weightHint':'เว้นว่าง = ใช้น้ำหนักตัว','wf.reps':'จำนวนครั้ง','wf.sets':'จำนวนเซต','wf.feel':'ฟีลลิ่งความหนัก','wf.note':'โน้ตสำหรับครั้งหน้า','wf.notePh':'เช่น ฟอร์มดี ครั้งหน้าลองเพิ่มน้ำหนัก / ไหล่ซ้ายตึง','wf.date':'วันที่',
   'wf.save':'บันทึกการฝึก','wf.update':'อัปเดตบันทึก','wf.cancelEdit':'ยกเลิกการแก้ไข','wf.exReq':'ใส่ชื่อท่าก่อน','wf.repsReq':'ใส่จำนวนครั้งและเซตให้ถูกต้อง','wf.today':'บันทึกของวันนี้',
   'fl.weak':'อ่อนแรง','fl.target':'ทำถึงเป้า','fl.energetic':'กระปรี้กระเปร่า','fl.spare':'แรงเหลือ',
   'prev.title':'ครั้งก่อนของท่านี้','prev.note':'โน้ตจากครั้งก่อน','ago.today':'วันนี้','ago.yesterday':'เมื่อวาน','ago.days':'{n} วันก่อน','ago.weeks':'{n} สัปดาห์ก่อน','ago.months':'{n} เดือนก่อน',
@@ -619,7 +622,7 @@ en: {
   'cal.sDays':'Successful days','cal.sTicks':'Total ticks','cal.sWeeks':'Weekly goals hit','cal.u.day':'days','cal.u.time':'times','cal.u.goal':'goals',
   'day.done':'{a} of {b} habits done','day.noHabits':'No habits yet for this day','day.workouts':'Workouts','day.noWorkout':'No workouts logged','day.addWorkout':'Add a workout','day.future':'This day hasn’t come yet','day.weekTotal':'This week {c}/{t}',
   'wk.log':'Log','wk.history':'History','wk.progress':'Progress',
-  'wf.title':'Log a session','wf.edit':'Edit entry','wf.ex':'Exercise','wf.exPh':'e.g. Bench Press, Squat','wf.weight':'Weight (kg)','wf.weightPh':'Empty = bodyweight','wf.reps':'Reps','wf.sets':'Sets','wf.feel':'How it felt','wf.note':'Note for next time','wf.notePh':'e.g. Form was good, try more weight next time / left shoulder tight','wf.date':'Date',
+  'wf.title':'Log a session','wf.edit':'Edit entry','wf.ex':'Exercise','wf.exPh':'e.g. Bench Press, Squat','wf.weight':'Weight (kg)','wf.weightPh':'–','wf.weightHint':'Empty = bodyweight','wf.reps':'Reps','wf.sets':'Sets','wf.feel':'How it felt','wf.note':'Note for next time','wf.notePh':'e.g. Form was good, try more weight next time / left shoulder tight','wf.date':'Date',
   'wf.save':'Save session','wf.update':'Update entry','wf.cancelEdit':'Cancel editing','wf.exReq':'Enter the exercise name first','wf.repsReq':'Enter valid reps and sets','wf.today':'Logged today',
   'fl.weak':'Drained','fl.target':'Hit target','fl.energetic':'Energised','fl.spare':'Plenty left',
   'prev.title':'Last time for this exercise','prev.note':'Note from last time','ago.today':'today','ago.yesterday':'yesterday','ago.days':'{n} days ago','ago.weeks':'{n} weeks ago','ago.months':'{n} months ago',
@@ -1062,7 +1065,7 @@ function workLogHTML() {
   return `<div class="cols two"><div class="panel pad"><h2 style="font-size:17px;font-weight:500;margin-bottom:14px">${esc(t(f.id ? 'wf.edit' : 'wf.title'))}</h2>
     <div class="fgrid"><div class="field full"><span>${esc(t('wf.ex'))}</span><input type="text" data-f="ex" list="exlist" value="${esc(f.ex)}" placeholder="${esc(t('wf.exPh'))}" autocomplete="off"><datalist id="exlist">${opts}</datalist></div>
     <div id="wprev" class="full" style="grid-column:1/-1"></div>
-    <div class="field"><span>${esc(t('wf.weight'))}</span>${stepperHTML('weight', f.weight, t('wf.weightPh'))}</div><div class="field"><span>${esc(t('wf.date'))}</span><input type="date" data-f="date" value="${esc(f.date)}" max="${todayKey()}"></div>
+    <div class="field"><span>${esc(t('wf.weight'))}</span>${stepperHTML('weight', f.weight, t('wf.weightPh'))}<small class="dimtxt tiny" style="display:block;margin-top:6px">${esc(t('wf.weightHint'))}</small></div><div class="field"><span>${esc(t('wf.date'))}</span><input type="date" data-f="date" value="${esc(f.date)}" max="${todayKey()}"></div>
     <div class="field"><span>${esc(t('wf.reps'))}</span>${stepperHTML('reps', f.reps)}</div><div class="field"><span>${esc(t('wf.sets'))}</span>${stepperHTML('sets', f.sets)}</div>
     <div class="field full"><span>${esc(t('wf.feel'))}</span><div class="feels">${FEELINGS.map(x => `<button type="button" class="feel" data-act="feel" data-v="${x[0]}" aria-pressed="${f.feeling === x[0]}"><span class="e">${x[1]}</span>${esc(t('fl.' + x[0]))}</button>`).join('')}</div></div>
     <div class="field full"><span>${esc(t('wf.note'))}</span><textarea data-f="note" placeholder="${esc(t('wf.notePh'))}" maxlength="400">${esc(f.note)}</textarea></div></div>
@@ -1572,6 +1575,94 @@ Object.assign(I18N.en, {
       toast(t('food.aiFail'), 'bad');
     }
   });
+})();
+/* ===== ส่วนเสริมใหม่: จับเวลาพัก / โปรแกรมซ้อม / AI สรุปสัปดาห์ (ไม่แตะโค้ด AI เดิม) ===== */
+(function extras() {
+  const TH = () => LANG === 'th', LS = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+
+  // ---------- 1) จับเวลาพักหลังบันทึกเซต ----------
+  const PRESETS = [60, 90, 120, 180]; let dur = LS.get('restSec', 90), end = 0, tick = null, ac = null;
+  const box = document.createElement('div'); box.hidden = true;
+  box.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:calc(74px + env(safe-area-inset-top,0px));z-index:80;display:flex;gap:6px;align-items:center;padding:7px 8px 7px 16px;border-radius:99px;background:var(--text);color:var(--bg);box-shadow:0 14px 34px -12px rgba(0,0,0,.55)';
+  const bs = 'background:rgba(127,127,127,.35);color:inherit;border-radius:99px;padding:6px 10px;font-size:13px';
+  box.innerHTML = `<span>⏱</span><b id="rt-t" style="font-family:var(--font-num);font-size:22px;min-width:58px;text-align:center"></b><button data-r="-15" style="${bs}">−15</button><button data-r="15" style="${bs}">+15</button><button data-r="c" style="${bs}"></button><button data-r="x" style="${bs}">✕</button>`;
+  document.body.appendChild(box);
+  const fmt = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  const stop = () => { clearInterval(tick); tick = null; box.hidden = true; };
+  function beep() { try { const o = ac.createOscillator(), g = ac.createGain(); o.connect(g); g.connect(ac.destination); g.gain.value = .2; o.frequency.value = 880; o.start(); o.stop(ac.currentTime + .35); } catch (e) {} try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {} }
+  function draw() { const left = Math.max(0, Math.ceil((end - Date.now()) / 1000)); $('#rt-t', box).textContent = fmt(left); if (!left) { stop(); beep(); toast(TH() ? 'พักครบแล้ว ลุยเซตต่อ!' : 'Rest over — next set!', 'ok'); } }
+  function start() { try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch (e) {} end = Date.now() + dur * 1000; $('[data-r=c]', box).textContent = dur + 's'; box.hidden = false; clearInterval(tick); tick = setInterval(draw, 250); draw(); }
+  box.addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; const r = b.dataset.r;
+    if (r === 'x') return stop(); if (r === 'c') { dur = PRESETS[(PRESETS.indexOf(dur) + 1) % PRESETS.length]; LS.set('restSec', dur); return start(); }
+    end += +r * 1000; draw(); });
+  document.addEventListener('click', e => { if (!e.target.closest('[data-act=wsave]')) return; const n = DB.workouts.length;
+    setTimeout(() => { if (DB.workouts.length > n) start(); }, 150); }, true);
+
+  // ---------- 2) โปรแกรมซ้อมสำเร็จรูป ----------
+  const PROG0 = { 'Push': ['Bench Press', 'Overhead Press', 'Incline Dumbbell Press', 'Lateral Raise', 'Triceps Pushdown'],
+    'Pull': ['Deadlift', 'Pull-up', 'Barbell Row', 'Lat Pulldown', 'Biceps Curl'],
+    'Legs': ['Squat', 'Romanian Deadlift', 'Leg Press', 'Lunge', 'Calf Raise'],
+    'Upper': ['Bench Press', 'Barbell Row', 'Overhead Press', 'Pull-up', 'Biceps Curl'],
+    'Lower': ['Squat', 'Romanian Deadlift', 'Leg Press', 'Lunge', 'Calf Raise'],
+    'Full body': ['Squat', 'Bench Press', 'Barbell Row', 'Overhead Press', 'Plank'] };
+  const progs = () => Object.assign({}, PROG0, LS.get('progs', {}));
+  function progHTML() {
+    const P = progs(), sel = UI.progSel && P[UI.progSel] ? UI.progSel : null, th = TH(), day = UI.form ? UI.form.date : todayKey();
+    const done = new Set(DB.workouts.filter(w => w.date === day).map(w => normEx(w.ex)));
+    return `<div class="panel pad" style="margin-bottom:18px"><h2 style="font-size:15px;font-weight:500;margin-bottom:10px">${th ? 'โปรแกรมซ้อม' : 'Programs'}</h2>
+      <div class="exchips">${Object.keys(P).map(n => `<button class="chip" data-pg="sel" data-n="${esc(n)}" aria-pressed="${n === sel}">${esc(n)}</button>`).join('')}</div>
+      ${sel ? `<div style="display:flex;flex-wrap:wrap;gap:8px">${P[sel].map(x => `<button class="chip" data-pg="ex" data-x="${esc(x)}">${done.has(normEx(x)) ? '✓ ' : ''}${esc(x)}</button>`).join('')}</div>
+      <button class="link" style="margin-top:10px" data-pg="edit">${th ? 'แก้ท่าในโปรแกรมนี้' : 'Edit exercises'}</button>` : `<p class="dimtxt tiny">${th ? 'เลือกโปรแกรม แล้วกดท่าเพื่อเติมฟอร์มด้วยน้ำหนัก/เรป/เซตครั้งล่าสุดให้' : 'Pick a program, then tap an exercise to prefill your last weight/reps/sets'}</p>`}</div>`;
+  }
+  const _rb = renderWorkoutBody;
+  renderWorkoutBody = function () { _rb(); if (UI.wkTab === 'log') { const b = $('#wk-body'); if (b) b.insertAdjacentHTML('afterbegin', progHTML()); } };
+  const wroot = $('#view-workout');
+  if (wroot) wroot.addEventListener('click', e => { const b = e.target.closest('[data-pg]'); if (!b) return; const a = b.dataset.pg;
+    if (a === 'sel') { UI.progSel = UI.progSel === b.dataset.n ? null : b.dataset.n; return renderWorkoutBody(); }
+    if (a === 'ex') { const x = b.dataset.x, day = UI.form ? UI.form.date : todayKey(), last = lastSession(x, day, null);
+      UI.form = Object.assign(newForm(day), { ex: x }); if (last) Object.assign(UI.form, { weight: last.weight ? String(last.weight) : '', reps: last.reps, sets: last.sets });
+      renderWorkoutBody(); const el = $('[data-f=ex]', wroot); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); return; }
+    if (a === 'edit') { const n = UI.progSel, v = prompt(TH() ? 'ท่าในโปรแกรม (คั่นด้วยเครื่องหมายจุลภาค ,)' : 'Exercises (comma separated)', progs()[n].join(', '));
+      if (v === null) return; const arr = v.split(',').map(s => s.trim()).filter(Boolean).slice(0, 20); if (!arr.length) return;
+      const ov = LS.get('progs', {}); ov[n] = arr; LS.set('progs', ov); renderWorkoutBody(); } });
+
+  // ---------- 3) AI สรุปรายสัปดาห์ (เรียก API แยก ใช้ Key เดียวกับในตั้งค่า) ----------
+  const WEEKLY_MODEL = 'gemini-3.1-flash-lite';
+  const dk = d => dkey(d), days7 = () => [...Array(7)].map((_, i) => { const x = new Date(); x.setDate(x.getDate() - 6 + i); return dk(x); });
+  async function weeklyAI() {
+    const key = (PREFS.aiKey || '').trim(), out = $('#wk-ai-out'), btn = $('#wk-ai-btn'), th = TH();
+    if (!key) return toast(t('food.aiNoKey'), 'bad');
+    const days = days7(), ws = DB.workouts.filter(w => days.includes(w.date)).sort((a, b) => a.date.localeCompare(b.date));
+    const meals = days.map(d => `${d}: ${dayKcal(d)} kcal`);
+    if (!ws.length && !DB.meals.some(m => days.includes(m.date))) return toast(th ? 'ยังไม่มีข้อมูล 7 วันล่าสุดให้สรุป' : 'No data in the last 7 days', 'bad');
+    const data = `Workouts:\n${ws.map(w => `${w.date} ${w.ex} ${w.weight ? w.weight + 'kg' : 'bodyweight'} x${w.reps} reps x${w.sets} sets feel:${w.feeling}${w.note ? ' note:' + w.note : ''}`).join('\n') || '(none)'}\nCalories (goal ${DB.goalKcal || 2000}):\n${meals.join('\n')}`;
+    const ask = (th ? 'คุณคือโค้ชฟิตเนส สรุป 7 วันล่าสุดของผู้ใช้เป็นภาษาไทย 5-6 บรรทัดสั้นๆ ได้แก่ ภาพรวมการซ้อม, ท่าที่พัฒนาหรือติดแผ่ว, การกินเทียบเป้าแคลอรี่, และคำแนะนำ 2 ข้อสำหรับสัปดาห์หน้า ห้ามแต่งตัวเลขที่ไม่มีในข้อมูล' : 'You are a fitness coach. Summarize the user\'s last 7 days in 5-6 short lines: training overview, exercises improving or stalling, calories vs goal, and 2 tips for next week. Do not invent numbers.') + '\n\n' + data;
+    btn.disabled = true; out.textContent = '…';
+    try {
+      let res = null;
+      for (let i = 0; i < 3; i++) {
+        res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${WEEKLY_MODEL}:generateContent?key=${encodeURIComponent(key)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: ask }] }] }) });
+        if (res.status !== 503 && res.status !== 500) break; await new Promise(r => setTimeout(r, 1500 * (i + 1)));
+      }
+      if (!res.ok) throw Object.assign(new Error('HTTP ' + res.status), { status: res.status });
+      const j = await res.json(), text = (j?.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('').trim(); if (!text) throw new Error('Empty response');
+      LS.set('weeklyAI', { at: Date.now(), text }); out.textContent = text;
+    } catch (err) {
+      out.textContent = err.status === 429 ? (th ? 'โควต้า AI ฟรีหมดชั่วคราว รอสักครู่หรือลองใหม่วันถัดไป' : 'Free AI quota reached. Try again later.') : (th ? 'AI สรุปไม่สำเร็จ' : 'AI summary failed') + ' [' + (err.message || err) + ']';
+    } finally { btn.disabled = false; }
+  }
+  const _rs = renderStats;
+  VIEWS.stats = renderStats = function () {
+    _rs(); const root = $('#view-stats'); if (!root || $('#wk-ai', root)) return; const th = TH(), sv = LS.get('weeklyAI', null);
+    const d = document.createElement('div'); d.id = 'wk-ai'; d.className = 'panel pad'; d.style.marginTop = '18px';
+    d.innerHTML = `<h2 style="font-size:16px;font-weight:500">✨ ${th ? 'สรุปสัปดาห์ด้วย AI' : 'AI weekly summary'}</h2><p class="sub" style="margin:4px 0 12px">${th ? 'วิเคราะห์การซ้อมและแคลอรี่ 7 วันล่าสุด' : 'Analyzes your last 7 days of training and calories'}</p>
+      <button class="btn ghost" id="wk-ai-btn">${th ? 'สรุปเลย' : 'Summarize'}</button>
+      <div id="wk-ai-out" style="margin-top:12px;white-space:pre-wrap;font-size:14px;line-height:1.65">${sv ? esc(sv.text) : ''}</div>${sv ? `<p class="dimtxt tiny" style="margin-top:8px">${esc(new Date(sv.at).toLocaleString(t('weekday')))}</p>` : ''}`;
+    root.appendChild(d); $('#wk-ai-btn', d).addEventListener('click', weeklyAI);
+  };
 })();
 init();
 // ปิดการซูมบน iOS Safari (iOS ไม่สนใจ user-scalable=no)
